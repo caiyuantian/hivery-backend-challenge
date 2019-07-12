@@ -1,0 +1,7 @@
+{
+    "type" : "object",
+    "properties" : {
+        "index" : {"type" : "number"},
+        "company" : {"type" : "string"},
+    },
+}

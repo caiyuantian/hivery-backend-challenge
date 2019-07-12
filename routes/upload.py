@@ -94,6 +94,7 @@ def upload():
     if request.method == "POST":
         if 'companies' not in request.files and 'people' not in request.files:
             return 'No "companies" or "people" field in html form'
+
         # process companies.json
         if 'companies' in request.files:
             companies = request.files['companies']

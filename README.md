@@ -1,25 +1,140 @@
-# Paranuara Challenge
-Paranuara is a class-m planet. Those types of planets can support human life, for that reason the president of the Checktoporov decides to send some people to colonise this new planet and
-reduce the number of people in their own country. After 10 years, the new president wants to know how the new colony is growing, and wants some information about his citizens. Hence he hired you to build a rest API to provide the desired information.
+# Prerequisite: Installation packages and setup database
+1. What I installed is python 3.7.4, Flask 1.1.1, it should be work by using python >= 3 and Flask >= 1.0.
 
-The government from Paranuara will provide you two json files (located at resource folder) which will provide information about all the citizens in Paranuara (name, age, friends list, fruits and vegetables they like to eat...) and all founded companies on that planet.
-Unfortunately, the systems are not that evolved yet, thus you need to clean and organise the data before use.
-For example, instead of providing a list of fruits and vegetables their citizens like, they are providing a list of favourite food, and you will need to split that list (please, check below the options for fruits and vegetables).
+2. Install dependency package
+    1) Ubuntu: Install libmysqlclient-dev
+        sudo apt-get install libmysqlclient-dev
+    2) If you cannot install mysqlclient by pip3 in Windows, do it manually by install following whl package 
+        mysqlclient-1.4.2-cp37-cp37m-win32.whl
 
-## New Features
-Your API must provides these end points:
-- Given a company, the API needs to return all their employees. Provide the appropriate solution if the company does not have any employees.
-- Given 2 people, provide their information (Name, Age, Address, phone) and the list of their friends in common which have brown eyes and are still alive.
-- Given 1 people, provide a list of fruits and vegetables they like. This endpoint must respect this interface for the output: `{"username": "Ahi", "age": "30", "fruits": ["banana", "apple"], "vegetables": ["beetroot", "lettuce"]}`
+3. Install modules
+    pip3 install flask flask_mysqldb flask-httpauth
 
-## Delivery
-To deliver your system, you need to send the link on GitHub. Your solution must provide tasks to install dependencies, build the system and run. Solutions that does not fit this criteria **will not be accepted** as a solution. Assume that we have already installed in our environment Java, Ruby, Node.js, Python, MySQL, MongoDB and Redis; any other technologies required must be installed in the install dependencies task. Moreover well tested and designed systems are one of the main criteria of this assessement 
+4. If you are using mysql version > 8.0.4, you need to change the authentication method by adding following option to config file and then re-inititialize mysql
+    [mysqld]
+    default_authentication_plugin=mysql_native_password
 
-## Evaluation criteria
-- Solutions written in Python would be preferred.
-- Installation instructions that work.
-- During installation, we may use different companies.json or people.json files.
-- The API must work.
-- Tests
+5. Create a new mysql user hivery and grant privileges by following commands
+    CREATE USER 'hivery'@'localhost' IDENTIFIED BY 'Hivery123@';
+    grant all privileges on *.* to 'hivery'@'localhost';
+    quit
 
-Feel free to reach to your point of contact for clarification if you have any questions.
+    NOTE: If you are using different mysql user and database, please make sure following config the config.py file under project folder is updated accordingly.
+        MYSQL_USER = 'hivery'
+        MYSQL_PASSWORD = 'Hivery123@'
+        MYSQL_DB = 'hivery'
+
+6. Login mysql by new user hivery
+    mysql -u hivery -p
+
+7. Create database
+	CREATE DATABASE hivery;
+
+8. Create tables
+
+    use hivery;
+
+    CREATE TABLE IF NOT EXISTS `companies`(
+        `guid` CHAR(36) UNIQUE NOT NULL,
+        `index` INT UNIQUE NOT NULL,
+        `company` VARCHAR(50),
+        PRIMARY KEY NONCLUSTERED ( `guid` ),
+        INDEX CIX_COMPANIES (`index`)
+    )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+    CREATE TABLE IF NOT EXISTS `people`(
+        `guid` CHAR(36) UNIQUE NOT NULL,
+        `index` INT NOT NULL,
+        `has_died` TINYINT(1),
+        `balance` FLOAT,
+        `picture` VARCHAR(50),
+        `age` INT UNSIGNED,
+        `eyeColor` CHAR(10),
+        `name` VARCHAR(50),
+        `gender` CHAR(6),
+        `company_id` INT,
+        `email` VARCHAR(50),
+        `phone` VARCHAR(20),
+        `address` VARCHAR(100),
+        `about` VARCHAR(1000),
+        `registered` DATETIME,
+        PRIMARY KEY NONCLUSTERED ( `guid` ),
+        INDEX CIX_PEOPLE (`index`)
+    )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+    CREATE TABLE IF NOT EXISTS `friends`(
+        `_id` INT UNSIGNED AUTO_INCREMENT,
+        `index` INT NOT NULL,
+        `friend_index` INT NOT NULL,
+        PRIMARY KEY ( `_id` ),
+        INDEX CIX_FRIENDS (`index`)
+    )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+    CREATE TABLE IF NOT EXISTS `foods`(
+        `_id` INT UNSIGNED AUTO_INCREMENT,
+        `index` INT NOT NULL,
+        `food_type` TINYINT,
+        `favouriteFood` VARCHAR(20),
+        PRIMARY KEY ( `_id` ),
+        INDEX CIX_FOODS (`index`)
+    )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+## How to run this application?
+1. Clone this project from github
+    git clone https://github.com/caiyuantian/hivery-backend-challenge.git
+
+2. Go into the folder and run
+    cd hivery-backend-challenge
+    python app.py
+
+## How to do test?
+1. A simple default page is created as below
+    http://localhost:5000/
+
+    You can upload the new companies.json and people.json files to refresh the database in follow URL
+    http://localhost:5000/upload
+
+    there is authenticate before use the API, default user name and password are both 'admin', you can change them in function check_auth of file auth.py
+
+## test cases:
+1. normal case for company
+	http://localhost:5000/api/v1/company/1/employees
+2. abnormal case for company with zero people
+	http://localhost:5000/api/v1/company/0/employees
+3. normal case for 2 people with 1 common friend
+	http://localhost:5000/api/v1/people/3,4
+4. normal case for 2 people with 2 common friends
+	http://localhost:5000/api/v1/people/5,6
+5. abnormal case for 2 people with no common friend
+	http://localhost:5000/api/v1/people/1,2
+6. error case for input more than 2 people
+	http://localhost:5000/api/v1/people/2,3,4
+7. normal case for 1 people
+	http://localhost:5000/api/v1/people/2
+8. abnormal case for 1 people
+	http://localhost:5000/api/v1/people/2,
+9. abnormal case for 1 people
+	http://localhost:5000/api/v1/people/2%
+10. abnormal case for 1 people
+	http://localhost:5000/api/v1/people/2*
+11. abnormal case for 1 people
+	http://localhost:5000/api/v1/people/*
+12. abnormal case for 1 people
+	http://localhost:5000/api/v1/people/222222222222222222222222222222222
+13. abnormal case for 2 people
+	http://localhost:5000/api/v1/people/2,3,
+14. abnormal case for 2 people
+	http://localhost:5000/api/v1/people/2,3%
+15. abnormal case for 2 people
+	http://localhost:5000/api/v1/people/2,3*
+16. unusual case for 2 people
+	http://localhost:5000/api/v1/people/2,333333333333333333333333333333333333
+17. unusual case for 2 people
+	http://localhost:5000/api/v1/people/22222222222222222222222222222222222,3
+18. unusual case for 2 people
+	http://localhost:5000/api/v1/people/22222222222222222222222222222222222,33333333333333333333333333333333333
+
+# future work
+1. API traffic control, i.e. limit a user to use specific times in a period, and add blacklist function.
+2. Extend Authentication function to support multiple users. Can be easily done by adding a user table.
+3. More API functions
