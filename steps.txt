@@ -1,23 +1,29 @@
-﻿pip install flask flask_mysqldb  flask-httpauth
+﻿sudo apt-get install libmysqlclient-dev
 
-may need to install mysql connector for windows （mysqlclient-1.4.2-cp37-cp37m-win32.whl）
-mysql config file may need to add option for mysql 8.0
+pip3 install flask flask_mysqldb flask-httpauth
+
+note:
+if you are using windows os, you may need to install mysql connector（package name is mysqlclient-1.4.2-cp37-cp37m-win32.whl）
+if you are using mysql > 8.0.4,  you need to change the authentication method by adding following option to config file and re-init mysql
 default_authentication_plugin=mysql_native_password
 
-CREATE USER 'hivery'@'localhost' IDENTIFIED BY 'hivery';
+CREATE USER 'hivery'@'localhost' IDENTIFIED BY 'Hivery123@';
 grant all privileges on *.* to 'hivery'@'localhost';
+quit
 mysql -u hivery -p
 
 1. Create database
-	CREATE DATABASE hivery
+	CREATE DATABASE hivery;
 
 2. create tables
+
+use hivery
 
 CREATE TABLE IF NOT EXISTS `companies`(
     `guid` CHAR(36) UNIQUE NOT NULL,
     `index` INT UNIQUE NOT NULL,
     `company` VARCHAR(50),
-	PRIMARY KEY NONCLUSTERED ( `guid` ),
+    PRIMARY KEY NONCLUSTERED ( `guid` ),
     INDEX CIX_COMPANIES (`index`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -29,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `people`(
     `picture` VARCHAR(50),
     `age` INT UNSIGNED,
     `eyeColor` CHAR(10),
-	`name` VARCHAR(50),
+    `name` VARCHAR(50),
     `gender` CHAR(6) NOT NULL,
     `company_id` INT NOT NULL,
     `email` VARCHAR(50),
