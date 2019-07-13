@@ -8,10 +8,10 @@ import config
 from auth import requires_auth
 
 class DateEncoder(json.JSONEncoder):
+    '''
+    to convert datetime format to json acceptable format
+    '''
     def default(self, obj):                     # pylint: disable=E0202
-        '''
-        to convert datetime format to json acceptable format
-        '''
         if isinstance(obj, datetime.datetime):
             return obj.strftime('%Y-%m-%d %H:%M:%S')
         else:
@@ -35,9 +35,12 @@ def add_app_url_map_converter(self, func, name=None):
         state.app.url_map.converters[name or func.__name__] = func
     self.record_once(register_converter)
 
+# create int_list converter for blueprint
 Blueprint.add_app_url_map_converter = add_app_url_map_converter
 
 mod = Blueprint('v1', __name__, url_prefix='/api/v1')
+
+# add converter to blueprint module, so it can be used in URL
 mod.add_app_url_map_converter(IntListConverter, 'int_list')
 
 
@@ -88,7 +91,7 @@ def get_people(people_id):
     Query 2 people, e.g. http://localhost:5000/api/v1/people/3,4
     people list like 3,4 is stored in list people_id
     '''
-    # for one people query
+    # for 1 people query
     if len(people_id)==1:
         json_data={}
 
@@ -116,7 +119,7 @@ def get_people(people_id):
         cur.close()
         return json.dumps(json_data)
 
-    # for two people query
+    # for 2 people query
     elif len(people_id)==2:
         json_data_all={}
 
